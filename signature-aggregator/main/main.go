@@ -133,6 +133,18 @@ func main() {
 		logger.Fatal("Failed to create signature aggregator", zap.Error(err))
 		panic(err)
 	}
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		host := r.Host
+		exampleRequest := `curl --location 'https://` + host + `/aggregate-signatures' \
+	--header 'Content-Type: application/json' \
+	--data '{
+		"message": "[Message in hex]", 
+		"signing-subnet-id": "[Signing Subnet ID in base58, optional]", 
+		"justification": "[Justification in hex, optional]"
+	}'`
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("This is a Fuji signature aggregator. Please use the following request format: \n\n" + exampleRequest))
+	})
 
 	api.HandleAggregateSignaturesByRawMsgRequest(
 		logger,
