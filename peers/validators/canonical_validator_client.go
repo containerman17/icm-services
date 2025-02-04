@@ -3,6 +3,8 @@
 
 package validators
 
+//go:generate mockgen -source=$GOFILE -destination=./mocks/mock_canonical_validator_client.go -package=mocks
+
 import (
 	"context"
 
@@ -19,9 +21,18 @@ import (
 	pchainapi "github.com/ava-labs/avalanchego/vms/platformvm/api"
 )
 
-var _ validators.State = &CanonicalValidatorClient{}
+var _ CanonicalValidatorState = &CanonicalValidatorClient{}
 
-// CanonicalValidatorClient wraps platformvm.Client and implements validators.State
+// CanonicalValidatorState is an interface that wraps [validators.State] and adds additional
+// convenience methods for fetching current and proposed validator sets.
+type CanonicalValidatorState interface {
+	validators.State
+
+	GetCurrentCanonicalValidatorSet(subnetID ids.ID) ([]*avalancheWarp.Validator, uint64, error)
+	GetProposedValidators(ctx context.Context, subnetID ids.ID) (map[ids.NodeID]*validators.GetValidatorOutput, error)
+}
+
+// CanonicalValidatorClient wraps [platformvm.Client] and implements [CanonicalValidatorState]
 type CanonicalValidatorClient struct {
 	logger  logging.Logger
 	client  platformvm.Client
