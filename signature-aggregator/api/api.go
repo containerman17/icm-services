@@ -94,6 +94,23 @@ func signatureAggregationAPIHandler(
 	aggregator *aggregator.SignatureAggregator,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Add CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		// Handle preflight OPTIONS request
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Only allow POST requests
+		if r.Method != http.MethodPost {
+			writeJSONError(logger, w, http.StatusMethodNotAllowed, "Method not allowed")
+			return
+		}
+
 		metrics.AggregateSignaturesRequestCount.Inc()
 		startTime := time.Now()
 
